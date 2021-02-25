@@ -78,7 +78,7 @@ parser.add_argument('--multiprocessing-distributed', action='store_true',
                          'multi node data parallel training')
 
 best_acc1 = 0
-
+PATH = 'models/'
 
 def main():
     args = parser.parse_args()
@@ -237,12 +237,12 @@ def main_worker(gpu, ngpus_per_node, args):
         num_workers=args.workers, pin_memory=True)
 
     # wandb.watch(model)
-    wandb.watch(model, criterion, log="all", log_freq=1)
+    #wandb.watch(model, criterion, log="all", log_freq=1)
 
     if args.evaluate:
-        torch.save(model.state_dict(), 'model_state.pt')
-        #torch.save(model, 'model.pt')
-        return
+        # torch.save(model.state_dict(), 'model_state.pt')
+        # torch.save(model, 'model.pt')
+        # return
         validate(val_loader, model, criterion, args)
         return
 
@@ -254,6 +254,7 @@ def main_worker(gpu, ngpus_per_node, args):
         # train for one epoch
         train(train_loader, model, criterion, optimizer, epoch, args)
 
+        torch.save(model.state_dict(), PATH+'model_state_epoch_'+str(epoch+1)+'.pt')
         # evaluate on validation set
         acc1 = validate(val_loader, model, criterion, args)
 
@@ -278,7 +279,7 @@ def train(train_loader, model, criterion, optimizer, epoch, args):
     losses = AverageMeter('Loss', ':.4e')
     top1 = AverageMeter('Acc@1', ':6.2f')
     top5 = AverageMeter('Acc@5', ':6.2f')
-    wandb.log({'epoch': epoch, 'loss': str(losses)})
+    # wandb.log({'epoch': epoch, 'loss': str(losses)})
     progress = ProgressMeter(
         len(train_loader),
         [batch_time, data_time, losses, top1, top5],
