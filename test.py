@@ -10,9 +10,12 @@ import pdb
 model = models.__dict__['resnet18'](pretrained=True)
 model = torch.nn.DataParallel(model).cuda()
 model.load_state_dict(torch.load('model_state.pt'))
+# model.load_state_dict(torch.load('models/run1/model_state_epoch_1.pt'))
+pdb.set_trace()
 model.eval()
 
-img_name = 'water-bird.jpeg'
+# # img_name = 'water-bird.jpeg'
+img_name = 'n15075141_29199.JPEG'
 
 pil_img = PIL.Image.open(img_name)
 torch_img = transforms.Compose([
@@ -27,5 +30,5 @@ gc = GradCAM.from_config(**config)
 mask, _ = gc(normed_torch_img)
 heatmap, result = visualize_cam(mask, torch_img)
 # img1=transforms.ToPILImage()(heatmap)
-save_image(heatmap, 'img1.png')
-pdb.set_trace()
+save_image(heatmap, 'img2.png')
+# pdb.set_trace()
