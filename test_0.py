@@ -195,26 +195,30 @@ def main_worker(gpu, ngpus_per_node, args):
 
     # optionally resume from a checkpoint
     if args.resume:
-        if os.path.isfile(args.resume):
-            print("=> loading checkpoint '{}'".format(args.resume))
-            if args.gpu is None:
-                checkpoint = torch.load(args.resume)
+        try:
+            if os.path.isfile(args.resume):
+                print("=> loading checkpoint '{}'".format(args.resume))
+                if args.gpu is None:
+                    checkpoint = torch.load(args.resume)
+                else:
+                    # Map model to be loaded to specified single gpu.
+                    loc = 'cuda:{}'.format(args.gpu)
+                    checkpoint = torch.load(args.resume, map_location=loc)
+                # args.start_epoch = checkpoint['epoch']
+                # best_acc1 = checkpoint['best_acc1']
+                # if args.gpu is not None:
+                #     # best_acc1 may be from a checkpoint from a different GPU
+                #     best_acc1 = best_acc1.to(args.gpu)
+                # model.load_state_dict(checkpoint['state_dict'])
+                model.load_state_dict(checkpoint)
+                # optimizer.load_state_dict(checkpoint['optimizer'])
+                # print("=> loaded checkpoint '{}' (epoch {})"
+                #       .format(args.resume, checkpoint['epoch']))
             else:
-                # Map model to be loaded to specified single gpu.
-                loc = 'cuda:{}'.format(args.gpu)
-                checkpoint = torch.load(args.resume, map_location=loc)
-            # args.start_epoch = checkpoint['epoch']
-            # best_acc1 = checkpoint['best_acc1']
-            # if args.gpu is not None:
-            #     # best_acc1 may be from a checkpoint from a different GPU
-            #     best_acc1 = best_acc1.to(args.gpu)
-            # model.load_state_dict(checkpoint['state_dict'])
-            model.load_state_dict(checkpoint)
-            # optimizer.load_state_dict(checkpoint['optimizer'])
-            # print("=> loaded checkpoint '{}' (epoch {})"
-            #       .format(args.resume, checkpoint['epoch']))
-        else:
-            print("=> no checkpoint found at '{}'".format(args.resume))
+                print("=> no checkpoint found at '{}'".format(args.resume))
+        except Exception as e:
+            print(str(e))
+            return
 
     cudnn.benchmark = True
 
@@ -424,7 +428,7 @@ def validate(val_loader, model, criterion, args):
               .format(top1=top1, top5=top5))
 
     per_class_accuracy = correct_predicted_labels/total_labels
-    torch.save(per_class_accuracy, 'per_class_accuracy.pt')
+    torch.save(per_class_accuracy, 'models/run2/accuracy/per_class_accuracy_'+args.resume.split("_")[3])
     return top1.avg
 
 
@@ -506,7 +510,7 @@ def accuracy(output, target, args_, topk=(1,)):
 
             if(k==1):
                 unique_classes_in_batch = torch.unique(target)
-                torch.bincount(target).cuda(args_.gpu, non_blocking=True) #comment
+                # torch.bincount(target).cuda(args_.gpu, non_blocking=True) 
                 for i in unique_classes_in_batch:
                     indices_of_occurance_of_i = (target==i)
                     # num_occurance_of_i = torch.sum(indices_of_occurance_of_i).cuda(args_.gpu, non_blocking=True)

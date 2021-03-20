@@ -9,9 +9,9 @@ import pdb
 
 model = models.__dict__['resnet18'](pretrained=True)
 model = torch.nn.DataParallel(model).cuda()
-model.load_state_dict(torch.load('model_state.pt'))
-# model.load_state_dict(torch.load('models/run1/model_state_epoch_1.pt'))
-pdb.set_trace()
+# model.load_state_dict(torch.load('model_state.pt'))
+model.load_state_dict(torch.load('models/model_state_epoch_1.pt'))
+# pdb.set_trace()
 model.eval()
 
 # # img_name = 'water-bird.jpeg'
