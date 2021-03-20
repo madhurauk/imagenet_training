@@ -85,8 +85,6 @@ gradients = {}
 def main():
     args = parser.parse_args()
     wandb.init(project="my-project", config=args)
-    # wandb.share_memory()
-    # args.wandb=wandb
 
     if args.seed is not None:
         random.seed(args.seed)
@@ -248,7 +246,6 @@ def main_worker(gpu, ngpus_per_node, args):
 
     if args.evaluate:
         # torch.save(model.state_dict(), 'model_state.pt')
-        # torch.save(model, 'model.pt')
         # return
         validate(val_loader, model, criterion, args)
         return
@@ -260,26 +257,17 @@ def main_worker(gpu, ngpus_per_node, args):
     #         print(": forward_hook: ",name, output.size())
     #     return forward_hook_
     
-    ## backward_hook(key):
-        ##def backward_hook(module, grad_input, grad_output):
-            ##g = grad_output[0].detach().cpu().numpy()
-            # g = grad_output[0]
-            # torch.save(g, './GRADIENTS/'+key+'.pt')
-            ##gradients[name].append(g)
-            # print(": backward_hook: ",name)
-            ##print(": backward_hook: ",g)
-            ##pdb.set_trace()
+    def backward_hook(key):
+        def backward_hook(module, grad_input, grad_output):
+            pdb.set_trace()
+            g = grad_output[0].detach().cpu().numpy()
+            gradients[name].append(g)
 
-        ##return backward_hook
-    # pdb.set_trace()
-    ##for name, module in model.module.named_modules():
-        #if name == "image_feature_embeddings_list.0.0.image_attention_model":
-        #print("pythia.py: hooking layer ",name)
-        # module.register_forward_hook(forward_hook(name))
-        ##gradients[name]=[]
-        ##module.register_backward_hook(backward_hook(name))
-    # model.module.register_forward_hook(forward_hook('layer1'))
-    # model.module.register_backward_hook(backward_hook('layer1'))
+        return backward_hook
+
+    for name, module in model.module.named_modules():
+        gradients[name]=[]
+        module.register_backward_hook(backward_hook(name))
 
     for epoch in range(args.start_epoch, args.epochs):
         if args.distributed:
@@ -291,18 +279,12 @@ def main_worker(gpu, ngpus_per_node, args):
 
         torch.save(model.state_dict(), PATH+'model_state_epoch_'+str(epoch+1)+'.pt')
 
-        ##for name, module in model.module.named_modules():
-            #if name == "image_feature_embeddings_list.0.0.image_attention_model":
-            #print("pythia.py: hooking layer ",name)
-            # module.register_forward_hook(forward_hook(name))
-            ##print('start saving mean'+str(epoch+1)+'_'+key+'.pt')
-            # torch.save(np.mean(np.stack(gradients[name]), axis=0), './GRADIENTS/mean'+str(epoch+1)+'_'+key+'.pt')
-            ##np.save('./GRADIENTS/mean'+str(epoch+1)+'_'+key+'.npy', np.mean(np.stack(gradients[name]), axis=0))
-            ##print('done saving mean'+str(epoch+1)+'_'+key+'.pt')
-            # torch.save(np.std(np.stack(gradients[name]), axis=0), './GRADIENTS/std'+str(epoch+1)+'_'+key+'.pt')
-            ##np.save('./GRADIENTS/std'+str(epoch+1)+'_'+key+'.npy', np.std(np.stack(gradients[name]), axis=0))
-            ##print('done saving std'+str(epoch+1)+'_'+key+'.pt')
-            # print("after epoch",str(epoch+1)+'_'+key)
+        for name, module in model.module.named_modules():
+            print('start saving mean'+str(epoch+1)+'_'+key+'.pt')
+            np.save('./GRADIENTS/mean'+str(epoch+1)+'_'+key+'.npy', np.mean(np.stack(gradients[name]), axis=0))
+            print('done saving mean'+str(epoch+1)+'_'+key+'.pt')
+            np.save('./GRADIENTS/std'+str(epoch+1)+'_'+key+'.npy', np.std(np.stack(gradients[name]), axis=0))
+            print('done saving std'+str(epoch+1)+'_'+key+'.pt')
 
         # evaluate on validation set
         acc1 = validate(val_loader, model, criterion, args)
