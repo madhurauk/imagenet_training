@@ -493,7 +493,7 @@ def accuracy(output, target, args_, topk=(1,)):
     # total_labels = torch.zeros(1000,dtype=torch.float64)
     # total_labels = total_labels.cuda(args_.gpu, non_blocking=True)
     with torch.no_grad():
-        # pdb.set_trace()
+        pdb.set_trace()
         maxk = max(topk)
         batch_size = target.size(0)
 
