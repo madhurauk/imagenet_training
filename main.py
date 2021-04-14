@@ -79,7 +79,7 @@ parser.add_argument('--multiprocessing-distributed', action='store_true',
                          'multi node data parallel training')
 
 best_acc1 = 0
-PATH = 'models/'
+PATH = 'models/run4/'
 gradients = {}
 
 def main():
@@ -356,7 +356,8 @@ def train(train_loader, model, criterion, optimizer, epoch, args):
         losses.update(loss.item(), images.size(0))
         top1.update(acc1[0], images.size(0))
         top5.update(acc5[0], images.size(0))
-
+        wandb.log({'loss': loss.item(), 'top1': acc1[0], 'top5':acc5[0]})
+        # pdb.set_trace()
         # compute gradient and do SGD step
         optimizer.zero_grad()
         loss.backward()
@@ -416,9 +417,9 @@ def validate(val_loader, model, criterion, args):
 
 
 def save_checkpoint(state, is_best, filename='checkpoint.pth.tar'):
-    torch.save(state, filename)
+    torch.save(state, PATH+filename)
     if is_best:
-        shutil.copyfile(filename, 'model_best.pth.tar')
+        shutil.copyfile(PATH+filename, PATH+'model_best.pth.tar')
 
 
 class AverageMeter(object):
