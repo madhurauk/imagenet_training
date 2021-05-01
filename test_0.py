@@ -84,9 +84,7 @@ best_acc1 = 0
 PATH = 'models/'
 gradients = {}
 correct_predicted_labels = torch.zeros(1000,dtype=torch.float64)
-# correct_predicted_labels = correct_predicted_labels.cuda(args.gpu, non_blocking=True)
 total_labels = torch.zeros(1000,dtype=torch.float64)
-# total_labels = total_labels.cuda(args.gpu, non_blocking=True)
 
 def main():
     args = parser.parse_args()
@@ -94,8 +92,6 @@ def main():
     # args.wandb=wandb
     global correct_predicted_labels
     global total_labels
-    # correct_predicted_labels = correct_predicted_labels.cuda(args.gpu, non_blocking=True)
-    # total_labels = total_labels.cuda(args.gpu, non_blocking=True)
 
     if args.seed is not None:
         random.seed(args.seed)
@@ -292,12 +288,6 @@ def main_worker(gpu, ngpus_per_node, args):
     # model.module.register_backward_hook(backward_hook('layer1'))
 
     for epoch in range(args.start_epoch, args.epochs):
-        # correct_predicted_labels = torch.zeros(1000,dtype=torch.float64)
-        # correct_predicted_labels = correct_predicted_labels.cuda(args.gpu, non_blocking=True)
-        # total_labels = torch.zeros(1000,dtype=torch.float64)
-        # total_labels = total_labels.cuda(args.gpu, non_blocking=True)
-        # correct_predicted_labels = np.zeros(1000,dtype=np.float64)
-        # total_labels = np.zeros(1000,dtype=np.float64)
         if args.distributed:
             train_sampler.set_epoch(epoch)
         adjust_learning_rate(optimizer, epoch, args)
@@ -393,11 +383,6 @@ def validate(val_loader, model, criterion, args):
     # switch to evaluate mode
     model.eval()
 
-    # correct_predicted_labels = torch.zeros(1000,dtype=torch.float64)
-    # correct_predicted_labels = correct_predicted_labels.cuda(args.gpu, non_blocking=True)
-    # total_labels = torch.zeros(1000,dtype=torch.float64)
-    # total_labels = total_labels.cuda(args.gpu, non_blocking=True)
-
     with torch.no_grad():
         end = time.time()
         for i, (images, target) in enumerate(val_loader):
@@ -488,10 +473,6 @@ def adjust_learning_rate(optimizer, epoch, args):
 
 def accuracy(output, target, args_, topk=(1,)):
     """Computes the accuracy over the k top predictions for the specified values of k"""
-    # correct_predicted_labels = torch.zeros(1000,dtype=torch.float64)
-    # correct_predicted_labels = correct_predicted_labels.cuda(args_.gpu, non_blocking=True)
-    # total_labels = torch.zeros(1000,dtype=torch.float64)
-    # total_labels = total_labels.cuda(args_.gpu, non_blocking=True)
     with torch.no_grad():
         pdb.set_trace()
         maxk = max(topk)
@@ -518,8 +499,6 @@ def accuracy(output, target, args_, topk=(1,)):
                     # pdb.set_trace()
                     correct_predicted_labels[i] += correct[:k].reshape(-1)[indices_of_occurance_of_i].float().sum(0, keepdim=True).item()
                     total_labels[i] += num_occurance_of_i
-        # per_class_accuracy = correct_predicted_labels/total_labels
-        # torch.save(per_class_accuracy, 'per_class_accuracy.pt')
         return res
 
 
