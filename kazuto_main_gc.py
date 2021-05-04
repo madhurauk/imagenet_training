@@ -25,6 +25,7 @@ from grad_cam import (
     GuidedBackPropagation,
     occlusion_sensitivity,
 )
+import pdb
 
 # if a model includes LSTM, such as in image captioning,
 # torch.backends.cudnn.enabled = False
@@ -127,7 +128,7 @@ class KazutoMain:
     # @click.option("-o", "--output-dir", type=str, default="./results")
     # @click.option("--cuda/--cpu", default=True)
     # def demo1(image_paths, target_layer, arch, topk, output_dir, cuda):
-    def demo1(self, image_paths, target_layer, model, arch, output_dir, cuda=True, topk=1):
+    def demo1(self, image_paths, target_layer, model, arch, output_dir, ground_truth_class, cuda=True, topk=1):
         """
         Visualize model responses given multiple images
         """
@@ -155,52 +156,52 @@ class KazutoMain:
         """
 
         # =========================================================================
-        print("Vanilla Backpropagation:")
+        # print("Vanilla Backpropagation:")
 
         bp = BackPropagation(model=model)
         probs, ids = bp.forward(images)  # sorted
 
-        for i in range(topk):
-            bp.backward(ids=ids[:, [i]])
-            gradients = bp.generate()
+        # for i in range(topk):
+        #     bp.backward(ids=ids[:, [i]])
+        #     gradients = bp.generate()
 
-            # Save results as image files
-            for j in range(len(images)):
-                print("\t#{}: {} ({:.5f})".format(j, classes[ids[j, i]], probs[j, i]))
+        #     # Save results as image files
+        #     for j in range(len(images)):
+        #         print("\t#{}: {} ({:.5f})".format(j, classes[ids[j, i]], probs[j, i]))
 
-                self.save_gradient(
-                    filename=osp.join(
-                        output_dir,
-                        "{}-{}-vanilla-{}.png".format(j, arch, classes[ids[j, i]]),
-                    ),
-                    gradient=gradients[j],
-                )
+        #         self.save_gradient(
+        #             filename=osp.join(
+        #                 output_dir,
+        #                 "{}-{}-vanilla-{}.png".format(j, arch, classes[ids[j, i]]),
+        #             ),
+        #             gradient=gradients[j],
+        #         )
 
-        # Remove all the hook function in the "model"
-        bp.remove_hook()
+        # # Remove all the hook function in the "model"
+        # bp.remove_hook()
 
-        # =========================================================================
-        print("Deconvolution:")
+        # # =========================================================================
+        # print("Deconvolution:")
 
-        deconv = Deconvnet(model=model)
-        _ = deconv.forward(images)
+        # deconv = Deconvnet(model=model)
+        # _ = deconv.forward(images)
 
-        for i in range(topk):
-            deconv.backward(ids=ids[:, [i]])
-            gradients = deconv.generate()
+        # for i in range(topk):
+        #     deconv.backward(ids=ids[:, [i]])
+        #     gradients = deconv.generate()
 
-            for j in range(len(images)):
-                print("\t#{}: {} ({:.5f})".format(j, classes[ids[j, i]], probs[j, i]))
+        #     for j in range(len(images)):
+        #         print("\t#{}: {} ({:.5f})".format(j, classes[ids[j, i]], probs[j, i]))
 
-                self.save_gradient(
-                    filename=osp.join(
-                        output_dir,
-                        "{}-{}-deconvnet-{}.png".format(j, arch, classes[ids[j, i]]),
-                    ),
-                    gradient=gradients[j],
-                )
+        #         self.save_gradient(
+        #             filename=osp.join(
+        #                 output_dir,
+        #                 "{}-{}-deconvnet-{}.png".format(j, arch, classes[ids[j, i]]),
+        #             ),
+        #             gradient=gradients[j],
+        #         )
 
-        deconv.remove_hook()
+        # deconv.remove_hook()
 
         # =========================================================================
         print("Grad-CAM/Guided Backpropagation/Guided Grad-CAM:")
@@ -208,51 +209,73 @@ class KazutoMain:
         gcam = GradCAM(model=model)
         _ = gcam.forward(images)
 
-        gbp = GuidedBackPropagation(model=model)
-        _ = gbp.forward(images)
+        # gbp = GuidedBackPropagation(model=model)
+        # _ = gbp.forward(images)
 
-        for i in range(topk):
-            # Guided Backpropagation
-            gbp.backward(ids=ids[:, [i]])
-            gradients = gbp.generate()
+        if not ground_truth_class:
+            for i in range(topk):
+                # Guided Backpropagation
+                # gbp.backward(ids=ids[:, [i]])
+                # gradients = gbp.generate()
 
-            # Grad-CAM
-            gcam.backward(ids=ids[:, [i]])
+                # Grad-CAM
+                # pdb.set_trace()
+                gcam.backward(ids=ids[:, [i]])
+                regions = gcam.generate(target_layer=target_layer)
+
+                for j in range(len(images)):
+                    print("\t#{}: {} ({:.5f})".format(j, classes[ids[j, i]], probs[j, i]))
+
+                    # Guided Backpropagation
+                    # self.save_gradient(
+                    #     filename=osp.join(
+                    #         output_dir,
+                    #         "{}-{}-guided-{}.png".format(j, arch, classes[ids[j, i]]),
+                    #     ),
+                    #     gradient=gradients[j],
+                    # )
+
+                    # Grad-CAM
+                    self.save_gradcam(
+                        filename=osp.join(
+                            output_dir,
+                            "{}-{}-gradcam-{}-{}.png".format(
+                                j, arch, target_layer, classes[ids[j, i]]
+                            ),
+                        ),
+                        gcam=regions[j, 0],
+                        raw_image=raw_images[j],
+                    )
+
+                    # Guided Grad-CAM
+                    # self.save_gradient(
+                    #     filename=osp.join(
+                    #         output_dir,
+                    #         "{}-{}-guided_gradcam-{}-{}.png".format(
+                    #             j, arch, target_layer, classes[ids[j, i]]
+                    #         ),
+                    #     ),
+                    #     gradient=torch.mul(regions, gradients)[j],
+                    # )
+        else:
+            # pdb.set_trace()
+            ground_truth_id = torch.tensor(classes.index(ground_truth_class)).unsqueeze(dim=0).unsqueeze(dim=0).to(device)
+            gcam.backward(ids=ground_truth_id)
             regions = gcam.generate(target_layer=target_layer)
 
             for j in range(len(images)):
-                print("\t#{}: {} ({:.5f})".format(j, classes[ids[j, i]], probs[j, i]))
-
-                # Guided Backpropagation
-                self.save_gradient(
-                    filename=osp.join(
-                        output_dir,
-                        "{}-{}-guided-{}.png".format(j, arch, classes[ids[j, i]]),
-                    ),
-                    gradient=gradients[j],
-                )
+                # print("\t#{}: {} ({:.5f})".format(j, classes[ids[j, i]], probs[j, i]))
 
                 # Grad-CAM
                 self.save_gradcam(
                     filename=osp.join(
                         output_dir,
                         "{}-{}-gradcam-{}-{}.png".format(
-                            j, arch, target_layer, classes[ids[j, i]]
+                            j, arch, target_layer, ground_truth_class
                         ),
                     ),
                     gcam=regions[j, 0],
                     raw_image=raw_images[j],
-                )
-
-                # Guided Grad-CAM
-                self.save_gradient(
-                    filename=osp.join(
-                        output_dir,
-                        "{}-{}-guided_gradcam-{}-{}.png".format(
-                            j, arch, target_layer, classes[ids[j, i]]
-                        ),
-                    ),
-                    gradient=torch.mul(regions, gradients)[j],
                 )
 
 

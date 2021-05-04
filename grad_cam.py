@@ -30,7 +30,7 @@ class _BaseWrapper(object):
     def forward(self, image):
         self.image_shape = image.shape[2:]
         self.logits = self.model(image)
-        pdb.set_trace()
+        # pdb.set_trace()
         self.probs = F.softmax(self.logits, dim=1)
         return self.probs.sort(dim=1, descending=True)  # ordered results
 

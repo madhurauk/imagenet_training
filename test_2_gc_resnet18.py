@@ -253,7 +253,7 @@ def generate_grad_cam(model, arch_epoch):
     gc = KazutoMain()
     # pdb.set_trace()
     # gc.demo1(["n15075141_29199.JPEG"],"module.layer4.1.conv2", model, "resnet18")
-    gc.demo1(["n02007558_14754.JPEG"],"module.layer4.1.conv2", model, arch_epoch, PATH)
+    gc.demo1(["n02007558_14754.JPEG"],"module.layer4.1.conv2", model, arch_epoch, PATH, "flamingo")
 
 def validate(val_loader, model, criterion, args):
     global is_first
