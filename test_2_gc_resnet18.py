@@ -246,7 +246,7 @@ def main_worker(gpu, ngpus_per_node, args):
 
     if args.evaluate:
         # validate(val_loader, model, criterion, args)
-        generate_grad_cam(model, args.arch+"-"+args.resume.split("_")[3].split(".")[0])
+        generate_grad_cam(model, args.arch+"-"+args.resume.split("_")[3].split(".")[0]) #TODO: prefix 0 for epochs 1 to 9
         return
 
 def generate_grad_cam(model, arch_epoch):
