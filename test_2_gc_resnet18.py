@@ -22,6 +22,10 @@ import numpy as np
 
 from kazuto_main_gc import KazutoMain
 
+import sys
+sys.path.append('/srv/share3/mummettuguli3/code/')
+from utils.grad_cam_caller import GCUtil
+
 model_names = sorted(name for name in models.__dict__
     if name.islower() and not name.startswith("__")
     and callable(models.__dict__[name]))
@@ -246,7 +250,9 @@ def main_worker(gpu, ngpus_per_node, args):
 
     if args.evaluate:
         # validate(val_loader, model, criterion, args)
-        generate_grad_cam(model, args.arch+"-"+args.resume.split("_")[3].split(".")[0]) #TODO: prefix 0 for epochs 1 to 9
+        # generate_grad_cam(model, args.arch+"-"+args.resume.split("_")[3].split(".")[0]) #TODO: prefix 0 for epochs 1 to 9
+        gc_util = GCUtil()
+        gc_util.generate_grad_cam(model, args.arch, args.resume.split("_")[3].split(".")[0], ["ostrich"], "module.layer4.1.conv2", PATH, "imagenet", valdir)
         return
 
 def generate_grad_cam(model, arch_epoch):
@@ -254,6 +260,7 @@ def generate_grad_cam(model, arch_epoch):
     # pdb.set_trace()
     # gc.demo1(["n15075141_29199.JPEG"],"module.layer4.1.conv2", model, "resnet18")
     gc.demo1(["n02007558_14754.JPEG"],"module.layer4.1.conv2", model, arch_epoch, PATH, "flamingo")
+    
 
 def validate(val_loader, model, criterion, args):
     global is_first
