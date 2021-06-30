@@ -195,22 +195,22 @@ def main_worker(gpu, ngpus_per_node, args):
                                 weight_decay=args.weight_decay)
 
     # optionally resume from a checkpoint
-    if args.resume:
-        try:
-            if os.path.isfile(args.resume):
-                print("=> loading checkpoint '{}'".format(args.resume))
-                if args.gpu is None:
-                    checkpoint = torch.load(args.resume)
-                else:
-                    # Map model to be loaded to specified single gpu.
-                    loc = 'cuda:{}'.format(args.gpu)
-                    checkpoint = torch.load(args.resume, map_location=loc)
-                model.load_state_dict(checkpoint)
-            else:
-                print("=> no checkpoint found at '{}'".format(args.resume))
-        except Exception as e:
-            print(str(e))
-            return
+    # if args.resume:
+    #     try:
+    #         if os.path.isfile(args.resume):
+    #             print("=> loading checkpoint '{}'".format(args.resume))
+    #             if args.gpu is None:
+    #                 checkpoint = torch.load(args.resume)
+    #             else:
+    #                 # Map model to be loaded to specified single gpu.
+    #                 loc = 'cuda:{}'.format(args.gpu)
+    #                 checkpoint = torch.load(args.resume, map_location=loc)
+    #             model.load_state_dict(checkpoint)
+    #         else:
+    #             print("=> no checkpoint found at '{}'".format(args.resume))
+    #     except Exception as e:
+    #         print(str(e))
+    #         return
 
     cudnn.benchmark = True
 
@@ -248,12 +248,33 @@ def main_worker(gpu, ngpus_per_node, args):
         batch_size=args.batch_size, shuffle=False,
         num_workers=args.workers, pin_memory=True)
 
-    if args.evaluate:
+    if args.resume and args.evaluate:
         # validate(val_loader, model, criterion, args)
         # generate_grad_cam(model, args.arch+"-"+args.resume.split("_")[3].split(".")[0]) #TODO: prefix 0 for epochs 1 to 9
+        class_list = ["ostrich"]
+        
         gc_util = GCUtil()
-        gc_util.generate_grad_cam(model, args.arch, args.resume.split("_")[3].split(".")[0], ["ostrich"], "module.layer4.1.conv2", PATH, "imagenet", valdir)
-        return
+        gc_util.create_output_folder(output_dir='GRADCAM_MAPS/resnet18/', dataset="imagenet", class_list=class_list, valdir=valdir, sample_count=2)
+        # for i in range(1,91):
+        for i in range(1,3):
+            model_state_file = os.path.join(args.resume, 'model_state_epoch_{0}.pt'.format(i))
+            try:
+                if os.path.isfile(model_state_file):
+                    print("=> loading checkpoint '{}'".format(model_state_file))
+                    if args.gpu is None:
+                        checkpoint = torch.load(model_state_file)
+                    else:
+                        # Map model to be loaded to specified single gpu.
+                        loc = 'cuda:{}'.format(args.gpu)
+                        checkpoint = torch.load(model_state_file, map_location=loc)
+                    model.load_state_dict(checkpoint)
+
+                    gc_util.generate_grad_cam(model, args.arch, str(i), class_list, "module.layer4.1.conv2", "imagenet")
+                else:
+                    print("=> no checkpoint found at '{}'".format(model_state_file))
+            except Exception as e:
+                print(str(e))
+                return
 
 def generate_grad_cam(model, arch_epoch):
     gc = KazutoMain()
