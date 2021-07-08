@@ -251,12 +251,13 @@ def main_worker(gpu, ngpus_per_node, args):
     if args.resume and args.evaluate:
         # validate(val_loader, model, criterion, args)
         # generate_grad_cam(model, args.arch+"-"+args.resume.split("_")[3].split(".")[0]) #TODO: prefix 0 for epochs 1 to 9
-        class_list = ["ostrich"]
+        class_list = ["ostrich","tailed_frog","great_white_shark","tiger_shark","great_grey_owl"]
+        dataset = "imagenet"
         
         gc_util = GCUtil()
-        gc_util.create_output_folder(output_dir='GRADCAM_MAPS/resnet18/', dataset="imagenet", class_list=class_list, valdir=valdir, sample_count=2)
-        # for i in range(1,91):
-        for i in range(1,3):
+        gc_util.create_output_folder(output_dir='GRADCAM_MAPS/resnet18/', dataset="imagenet", class_list=class_list, valdir=valdir, sample_count=3)
+        for i in range(1,91):
+        # for i in range(1,8):
             model_state_file = os.path.join(args.resume, 'model_state_epoch_{0}.pt'.format(i))
             try:
                 if os.path.isfile(model_state_file):
@@ -275,6 +276,8 @@ def main_worker(gpu, ngpus_per_node, args):
             except Exception as e:
                 print(str(e))
                 return
+        
+        gc_util.initiate_create_gif(dataset, class_list)
 
 def generate_grad_cam(model, arch_epoch):
     gc = KazutoMain()
