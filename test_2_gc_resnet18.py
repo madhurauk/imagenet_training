@@ -19,6 +19,7 @@ import torchvision.datasets as datasets
 import torchvision.models as models
 import pdb
 import numpy as np
+from GPUtil import showUtilization as gpu_usage
 
 from kazuto_main_gc import KazutoMain
 
@@ -97,6 +98,8 @@ def main():
     global total_labels
     global pred_stack
     global target_stack
+    print("Initial GPU Usage")
+    gpu_usage()  
     # pdb.set_trace()
     if args.seed is not None:
         random.seed(args.seed)
@@ -258,7 +261,9 @@ def main_worker(gpu, ngpus_per_node, args):
         gc_util = GCUtil()
         gc_util.create_output_folder(output_dir='GRADCAM_MAPS/resnet18/', dataset="imagenet", class_list=class_list, valdir=valdir, sample_count=1)
         for i in range(1,91):
-        # for i in range(1,8):
+        # for i in range(1,15):
+            print("Memory usage at Start of Epoch ",i)
+            gpu_usage() 
             model_state_file = os.path.join(args.resume, 'model_state_epoch_{0}.pt'.format(i))
             try:
                 if os.path.isfile(model_state_file):
@@ -279,7 +284,12 @@ def main_worker(gpu, ngpus_per_node, args):
                 return
             # pdb.set_trace()
             # print("memory summary:",torch.cuda.memory_summary(device=None, abbreviated=False))
+            print("Memory usage at end of Epoch ",i)
+            gpu_usage()
+            del model_state_file
             torch.cuda.empty_cache()
+            print("Memory usage at end of Epoch ",i, "after call to empty cache")
+            gpu_usage()
         gc_util.initiate_create_gif(dataset, class_list)
 
 def generate_grad_cam(model, arch_epoch):
