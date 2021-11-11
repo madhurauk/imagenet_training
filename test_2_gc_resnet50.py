@@ -22,6 +22,10 @@ import numpy as np
 
 from kazuto_main_gc import KazutoMain
 
+import sys
+sys.path.append('/srv/share3/mummettuguli3/code/')
+from utils.grad_cam_caller import GCUtil
+
 model_names = sorted(name for name in models.__dict__
     if name.islower() and not name.startswith("__")
     and callable(models.__dict__[name]))
@@ -56,6 +60,8 @@ parser.add_argument('-p', '--print-freq', default=10, type=int,
                     metavar='N', help='print frequency (default: 10)')
 parser.add_argument('--resume', default='', type=str, metavar='PATH',
                     help='path to latest checkpoint (default: none)')
+parser.add_argument('--output_dir', default='', type=str, metavar='PATH',
+                    help='path until folder name inside output dir for this specific run (default: none)')
 parser.add_argument('-e', '--evaluate', dest='evaluate', action='store_true',
                     help='evaluate model on validation set')
 parser.add_argument('--pretrained', dest='pretrained', action='store_true',
@@ -246,7 +252,13 @@ def main_worker(gpu, ngpus_per_node, args):
 
     if args.evaluate:
         # validate(val_loader, model, criterion, args)
-        generate_grad_cam(model, args.arch+"-"+args.resume.split("_")[3].split(".")[0])
+        # generate_grad_cam(model, args.arch+"-"+args.resume.split("_")[3].split(".")[0])
+        class_list = ["ostrich"]
+        dataset = "imagenet"
+        
+        gc_util = GCUtil()
+        gc_util.create_output_folder_2(output_dir=args.output_dir, dataset="imagenet", class_list=class_list)
+        gc_util.generate_grad_cam_2(model, args.arch, args.resume.split("_")[3].split(".")[0], class_list, "module.layer4.1.conv2", "imagenet")
         return
 
 def generate_grad_cam(model, arch_epoch):

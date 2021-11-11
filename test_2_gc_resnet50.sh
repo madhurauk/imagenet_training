@@ -5,7 +5,7 @@
 #SBATCH --gres gpu:1
 #SBATCH --nodes 1
 #SBATCH --ntasks-per-node 1
-#SBATCH --partition=long
+#SBATCH --partition=debug
 
 source /nethome/mummettuguli3/anaconda2/bin/activate
 conda activate my_basic_env_3
@@ -13,5 +13,5 @@ conda activate my_basic_env_3
 # python test.py
 for i in {1..90}
 do
-python test_2_gc_resnet50.py -a resnet50 --resume "models/run5/model_state_epoch_${i}.pt" --evaluate --workers 4 /coc/scratch/mummettuguli3/data/imagenet
+python test_2_gc_resnet50.py -a resnet50 --resume "models/run5/model_state_epoch_${i}.pt" --evaluate --output_dir "GRADCAM_MAPS/resnet50/${SLURM_JOBID}" --workers 4 /coc/scratch/mummettuguli3/data/imagenet
 done
