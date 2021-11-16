@@ -15,3 +15,5 @@ for i in {1..90}
 do
 python test_2_gc_resnet50.py -a resnet50 --resume "models/run5/model_state_epoch_${i}.pt" --evaluate --output_dir "GRADCAM_MAPS/resnet50/${SLURM_JOBID}" --workers 4 /coc/scratch/mummettuguli3/data/imagenet
 done
+
+python create_gif.py --output_dir "GRADCAM_MAPS/resnet50/${SLURM_JOBID}/" --class_list ostrich

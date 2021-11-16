@@ -83,6 +83,8 @@ parser.add_argument('--multiprocessing-distributed', action='store_true',
                          'N processes per node, which has N GPUs. This is the '
                          'fastest way to use PyTorch for either single node or '
                          'multi node data parallel training')
+parser.add_argument('--dataset', type=str)
+parser.add_argument('--class_list', nargs='*')
 
 best_acc1 = 0
 PATH = 'GRADCAM_MAPS/resnet50/'
@@ -253,12 +255,12 @@ def main_worker(gpu, ngpus_per_node, args):
     if args.evaluate:
         # validate(val_loader, model, criterion, args)
         # generate_grad_cam(model, args.arch+"-"+args.resume.split("_")[3].split(".")[0])
-        class_list = ["ostrich"]
-        dataset = "imagenet"
+        # class_list = ["ostrich"]
+        # dataset = "imagenet"
         
         gc_util = GCUtil()
-        gc_util.create_output_folder_2(output_dir=args.output_dir, dataset="imagenet", class_list=class_list)
-        gc_util.generate_grad_cam_2(model, args.arch, args.resume.split("_")[3].split(".")[0], class_list, "module.layer4.1.conv2", "imagenet")
+        gc_util.create_output_folder_2(output_dir=args.output_dir, dataset=args.dataset, class_list=args.class_list)
+        gc_util.generate_grad_cam_2(model, args.arch, args.resume.split("_")[3].split(".")[0], args.class_list, "module.layer4.1.conv2", args.dataset)
         return
 
 def generate_grad_cam(model, arch_epoch):
