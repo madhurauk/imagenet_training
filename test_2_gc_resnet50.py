@@ -258,7 +258,7 @@ def main_worker(gpu, ngpus_per_node, args):
         # class_list = ["ostrich"]
         # dataset = "imagenet"
         
-        gc_util = GCUtil()
+        gc_util = GCUtil(args.dataset)
         gc_util.create_output_folder_2(output_dir=args.output_dir, dataset=args.dataset, class_list=args.class_list)
         gc_util.generate_grad_cam_2(model, args.arch, args.resume.split("_")[3].split(".")[0], args.class_list, "module.layer4.1.conv2", args.dataset)
         return

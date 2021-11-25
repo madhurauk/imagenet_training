@@ -5,6 +5,6 @@ from utils.grad_cam_caller import GCUtil
 
 valdir = os.path.join("/coc/scratch/mummettuguli3/data/imagenet" , 'val')
 
-gc_util = GCUtil()
+gc_util = GCUtil("imagenet")
 gc_util.create_tiny_dataset(valdir, 10)
 #gc_util.create_output_folder(output_dir='GRADCAM_MAPS/resnet18/', dataset="imagenet", class_list=["ostrich"], valdir=valdir, sample_count=2)
