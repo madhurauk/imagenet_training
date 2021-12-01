@@ -102,6 +102,7 @@ def main():
     global total_labels
     global pred_stack
     global target_stack
+    print("args:",args)
     print("Initial GPU Usage")
     gpu_usage()  
     # pdb.set_trace()

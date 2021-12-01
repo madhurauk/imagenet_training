@@ -101,6 +101,7 @@ def main():
     global total_labels
     global pred_stack
     global target_stack
+    print("args:",args)
     # pdb.set_trace()
     if args.seed is not None:
         random.seed(args.seed)
